@@ -6,4 +6,5 @@ Docker can be either used for development, or deploying and using Templex every 
 
 Something about multistage building...
 
-`docker build -t `
+`docker build -t templex:dev -f docker/Dockerfile .`
+
