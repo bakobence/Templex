@@ -9,6 +9,8 @@ namespace parser {
 
 class ASTConsumer : public clang::ASTConsumer {
 public:
+    ASTConsumer(clang::SourceManager& sourceManager);
+
     void HandleTranslationUnit(clang::ASTContext& context) override;
 
 private:

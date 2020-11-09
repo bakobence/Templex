@@ -1,4 +1,4 @@
-set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+    set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 add_executable(templex_parser
     src/main.cpp
