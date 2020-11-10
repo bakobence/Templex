@@ -19,16 +19,13 @@ static cl::extrahelp CommonHelp(clang::tooling::CommonOptionsParser::HelpMessage
 
 auto main(int argc, const char** argv) -> int
 {
-
-    // clang::tooling::CommonOptionsParser optionsParser(argc, argv, Category);
-
     std::string error;
     std::unique_ptr<clang::tooling::CompilationDatabase> cd =
         clang::tooling::CompilationDatabase::autoDetectFromDirectory(argv[2], error);
 
     clang::tooling::ClangTool tool(*cd, cd->getAllFiles());
 
-    llvm::outs() << "Starting the parser...\n";
+    llvm::outs() << "Starting the parser...\n\n";
 
     return tool.run(
         clang::tooling::newFrontendActionFactory<templex::parser::ASTFrontendAction>()
