@@ -16,5 +16,5 @@ When running the container we need to mount a volume of our file system to be sy
 * --rm : cleans up the file system when the container exists
 * -v : this flags parameter is the volume we want to mount to the container
 
-`docker run --rm -it -v D:\dev\templex\templex:/templex templex:dev /bin/bash`
+`docker run -it -v D:\dev\templex\templex:/templex --name templex templex:dev /bin/bash`
 

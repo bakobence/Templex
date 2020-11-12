@@ -13,26 +13,24 @@ set_property(TARGET templex_parser PROPERTY CXX_STANDARD 17)
 set_property(TARGET templex_parser PROPERTY CXX_STANDARD_REQUIRED ON)
 
 find_package(LLVM REQUIRED CONFIG)
-message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION} in ${LLVM_INSTALL_PREFIX}")
+message(STATUS "LLVM found. Headers: ${LLVM_INCLUDE_DIRS}")
 
 find_package(Clang REQUIRED CONFIG HINTS "${LLVM_INSTALL_PREFIX}/lib/cmake/clang")
-message(STATUS "Found Clang in ${CLANG_INSTALL_PREFIX}")
+message(STATUS "Clang found Headers: ${CLANG_INCLUDE_DIRS}")
 
-message(STATUS "LLVM built with RTTI: ${LLVM_ENABLE_RTTI}")
+find_package(RapidJSON)
+
+message(STATUS "RTTI: ${LLVM_ENABLE_RTTI}")
 
 if (NOT LLVM_ENABLE_RTTI)
     message(SEND_ERROR "LLVM is compiled without RTTI")
 endif ()
 
-message("CLANG STATUS:
-  Includes (clang)    ${CLANG_INCLUDE_DIRS}
-  Includes (llvm)     ${LLVM_INCLUDE_DIRS}"
-)
-
 # PRIVATE since we don't want to expose our dependencies to our client application 
 target_include_directories(templex_parser 
     SYSTEM
         PRIVATE ${LLVM_INCLUDE_DIRS}
-        PRIVATE ${CLANG_INCLUDE_DIRS})
+        PRIVATE ${CLANG_INCLUDE_DIRS}
+        PRIVATE ${RapidJSON_INCLUDE_DIR})
 
 target_link_libraries(templex_parser PRIVATE LLVM clang-cpp)
