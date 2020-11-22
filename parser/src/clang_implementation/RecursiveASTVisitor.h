@@ -1,6 +1,10 @@
+#pragma once
+
 #include <clang/AST/RecursiveASTVisitor.h>
 #include <clang/Basic/SourceManager.h>
 #include <llvm/ADT/StringRef.h>
+
+#include "util/TypeCache.h"
 
 namespace templex {
 namespace parser {
@@ -17,7 +21,6 @@ public:
 
 private:
     std::string getDeclLocation(clang::SourceLocation location) const;
-
 
 private:
     clang::SourceManager& sourceManager_;

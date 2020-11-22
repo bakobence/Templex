@@ -1,3 +1,5 @@
+#pragma once
+
 #include <clang/Frontend/FrontendAction.h>
 
 namespace templex {
