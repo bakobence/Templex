@@ -1,11 +1,18 @@
 #include <clang/Tooling/CommonOptionsParser.h>
 #include <clang/Tooling/Tooling.h>
-
 #include <llvm/Support/CommandLine.h>
 
+#include <rapidjson/document.h>
+#include <rapidjson/prettywriter.h>
+#include <rapidjson/stringbuffer.h>
+
 #include "clang_implementation/ASTFrontendAction.h"
+#include "util/TypeCache.h"
 
 namespace cl = llvm::cl;
+
+using namespace templex;
+using namespace templex::parser;
 
 cl::OptionCategory Category("parser category");
 
@@ -27,7 +34,12 @@ auto main(int argc, const char** argv) -> int
 
     llvm::outs() << "Starting the parser...\n\n";
 
-    return tool.run(
-        clang::tooling::newFrontendActionFactory<templex::parser::ASTFrontendAction>()
-            .get());
+    int result = tool.run(clang::tooling::newFrontendActionFactory<
+                              templex::parser::ASTFrontendAction>()
+                              .get());
+
+    TypeCache::getInstance().dump();
+    TypeCache::getInstance().exportJSON();
+
+    return result;
 }

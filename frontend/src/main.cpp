@@ -1,8 +1,17 @@
-#include <iostream>
+#include <QApplication>
 
-auto main(int argc, char* argv[]) -> int {
+#include "MainWindow.h"
 
-    std::cout << "Hello world, from the frontend!" << std::endl;
+using namespace templex;
+using namespace templex::frontend;
 
-    return 0;
+auto main(int argc, char* argv[]) -> int
+{
+    QApplication app(argc, argv);
+
+    MainWindow window;
+
+    window.show();
+
+    return app.exec();
 }

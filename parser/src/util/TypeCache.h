@@ -31,11 +31,20 @@ public:
     TypeCache(const TypeCache&) = delete;
     void operator=(const TypeCache&) = delete;
 
-public:
-    void addClassTemplate(ClassTemplatePtr classTemplate);
-
 private:
     TypeCache() {}
+
+public:
+    void dump() const;
+    void exportJSON() const;
+
+    void addClassTemplate(ClassTemplatePtr classTemplate);
+    void addClassInstantiation(ClassInstantiationPtr instantiation);
+    bool containsClassName(const std::string& className) const;
+    ClassTemplatePtr getClassTemplateByClassName(const std::string& className) const;
+
+private:
+    ClassTemplatePtr makeClassKey(const std::string& className) const;
 
 private:
     ClassInstantiationsCache instantiations_;

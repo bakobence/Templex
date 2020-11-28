@@ -1,9 +1,15 @@
 #include "RecursiveASTVisitor.h"
 
+#include <clang/AST/DeclTemplate.h>
+#include <clang/AST/PrettyPrinter.h>
+#include <clang/Basic/LangOptions.h>
 #include <llvm/ADT/Twine.h>
+#include <llvm/Support/Casting.h>
+
 #include <string>
 
 #include "model/ClassTemplate.h"
+#include "model/TemplateParameter.h"
 
 using namespace templex;
 using namespace templex::parser;
@@ -17,43 +23,37 @@ RecursiveASTVisitor::RecursiveASTVisitor(clang::SourceManager& sourceManager)
 
 bool RecursiveASTVisitor::VisitClassTemplateDecl(clang::ClassTemplateDecl* D)
 {
+    auto className = D->getQualifiedNameAsString();
 
     auto& cache = TypeCache::getInstance();
 
+    if (cache.containsClassName(className)) {
+        return true;
+    }
+
     auto classTemplate = std::make_shared<ClassTemplate>();
+    classTemplate->setClassName(className);
 
-    classTemplate->setClassName(D->getName());
+    // Template parameters does not have a base class, but they are all
+    // NamedDecl.
+    auto* parameterList = D->getTemplateParameters();
+    for (auto** it = parameterList->begin(); it != parameterList->end(); it++) {
+        auto parameter = std::make_shared<TemplateParameter>();
+        parameter->setParameterName((*it)->getName());
 
-    llvm::outs() << D->getName() << "\n";
-
-    // Template arguments does not have a base class, but they are all NamedDecl.
-    auto* argumentList = D->getTemplateParameters();
-    llvm::outs() << " Depth: " << argumentList->getDepth() << "\n";
-    for (auto** it = argumentList->begin(); it != argumentList->end(); it++) {
-        auto* decl = *it;
-
-        llvm::outs() << "  " << decl->getName() << "\n";
-
-        auto argument = std::make_shared<TemplateArgument>();
-        argument->setArgumentName(decl->getName());
-    
-    }
-
-    /*
-    auto classDecl = D->getTemplatedDecl();
-    auto className = classDecl->getName();
-
-    llvm::outs() << "Template class: " << className << "\n";
-
-    for (auto* spec : D->specializations()) {
-        llvm::outs() << "  Specialization:\n";
-        for (auto arg : spec->getTemplateArgs().asArray()) {
-            llvm::outs() << "   Kind: " << arg.getKind() << " Value: "
-                         << arg.getAsType()->getCanonicalTypeInternal().getAsString()
-                         << "\n";
+        // Checking the "type" of the template parameter.
+        if (auto* type = llvm::dyn_cast<clang::TemplateTypeParmDecl>(*it)) {
+            parameter->setType(TemplateParameter::Type::TYPE);
+        } else if (auto* nonType =
+                       llvm::dyn_cast<clang::NonTypeTemplateParmDecl>(*it)) {
+            parameter->setType(TemplateParameter::Type::NON_TYPE);
         }
+
+        // Append the class template.
+        classTemplate->addParameter(parameter);
     }
-    */
+
+    cache.addClassTemplate(classTemplate);
 
     return true;
 }
@@ -61,11 +61,32 @@ bool RecursiveASTVisitor::VisitClassTemplateDecl(clang::ClassTemplateDecl* D)
 bool RecursiveASTVisitor::VisitClassTemplateSpecializationDecl(
     clang::ClassTemplateSpecializationDecl* D)
 {
-    auto args      = D->getTemplateArgs().asArray();
-    auto className = D->getQualifiedNameAsString();
-    auto location  = getDeclLocation(D->getPointOfInstantiation());
+    auto& cache        = TypeCache::getInstance();
+    auto className     = D->getQualifiedNameAsString();
+    auto& argumentList = D->getTemplateArgs();
+    auto classTemplate = cache.getClassTemplateByClassName(className);
+    auto location      = getDeclLocation(D->getPointOfInstantiation());
+    auto instantiation = std::make_shared<ClassInstantiation>(location);
+
+    instantiation->setClassTemplate(classTemplate);
+    instantiation->setPointOfInstantiation(location);
+
+    for (int i = 0; i < argumentList.size(); i++) {
+        const auto& arg = argumentList.get(i);
+
+        if (arg.getKind() == clang::TemplateArgument::ArgKind::Type) {
+            auto qualType = arg.getAsType();
+            clang::LangOptions langOptions;
+            clang::PrintingPolicy policy(langOptions);
+            policy.SuppressTagKeyword = 1;
+            instantiation->setActualParameter(i, qualType.getAsString(policy));
+        }
+    }
+
+    cache.addClassInstantiation(instantiation);
 
     /*
+
 
     llvm::outs() << className << " " << location << "\nTemplate argument list\n";
 
@@ -77,7 +98,8 @@ bool RecursiveASTVisitor::VisitClassTemplateSpecializationDecl(
 
             llvm::outs() << "  Type: ";
             llvm::outs() <<
-    arg.getAsType()->getCanonicalTypeInternal().getAsString(); llvm::outs() << "\n";
+    arg.getAsType()->getCanonicalTypeInternal().getAsString(); llvm::outs() <<
+    "\n";
 
         } else if (arg.getKind() == clang::TemplateArgument::ArgKind::Pack) {
 
