@@ -1,0 +1,16 @@
+QPushButton[menu="true"] {
+    height: 44px;
+    width: 80px;
+    border-radius: 0;
+    padding: 0;
+    margin: 0;
+    background-color: #0097a7;
+}
+
+QPushButton:hover[menu="true"] {
+    background-color: #56c8d8;
+}
+
+QFrame[menu="true"] {
+    background-color: #0097a7;
+}

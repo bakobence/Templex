@@ -20,8 +20,7 @@ private:
     void initContext();
     void initUi();
 
-    void initLeftMenu();
-    void initTopMenu();
+    void initMenu();
 
 private:
     Ui::MainWindow* ui;

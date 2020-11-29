@@ -1,7 +1,7 @@
 #pragma once
 
+#include <QHash>
 #include <QList>
-#include <QMap>
 #include <QObject>
 #include <QString>
 
@@ -14,42 +14,38 @@ class MenuRegistry : public QObject {
     Q_OBJECT
 
 public:
-    static void buildMenuRegistry()
-    {
-        mainMenus_ = {"Classes", "Functions"};
+    class MenuData {
+    public:
+        MenuData(int id, const QString& label) : id_(id), label_(label) {}
 
-        QList<QString> classesSubMenu{"Instantiations", "STL containers"};
+        bool operator==(const MenuData& other) const { return id_ == other.id_; }
 
-        QList<QString> functionsSubMenu{"Instantiations",
-                                        "Comparators",
-                                        "STL algorithm"};
-
-        subMenus_[0] = classesSubMenu;
-        subMenus_[1] = functionsSubMenu;
-    }
-
-    static QList<QString> getMainMenu()
-    {
-        return mainMenus_;
-    }
-
-    static QList<QString> getSubMenuFor(int mainMenuIndex)
-    {
-        if (mainMenuIndex < 0 || mainMenuIndex > mainMenus_.count() - 1) {
-            throw std::runtime_error("Invalid main menu index");
+        friend uint qHash(const MenuRegistry::MenuData& key, uint seed) noexcept
+        {
+            return qHash(key.id_, seed);
         }
 
-        if (!subMenus_.contains(mainMenuIndex)) {
-            throw std::runtime_error("Invalid main menu index");
-        }
+        inline int getId() const { return id_; }
 
-        return subMenus_[mainMenuIndex];
-    }
+        inline QString getLabel() const { return label_; }
+
+    private:
+        int id_;
+        QString label_;
+    };
+
+    static void buildMenuRegistry();
+
+    static QList<MenuData> getMainMenu();
+
+    static QList<MenuData> getSubMenu(const MenuData& mainMenuItem);
 
 private:
-    static QList<QString> mainMenus_;
-    static QMap<int, QList<QString>> subMenus_;
+    static QList<MenuData> mainMenus_;
+    static QHash<MenuData, QList<MenuData>> subMenus_;
 };
+
+uint qHash(const MenuRegistry::MenuData& key, uint seed) noexcept;
 
 } // namespace frontend
 } // namespace templex

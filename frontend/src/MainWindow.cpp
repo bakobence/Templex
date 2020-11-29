@@ -1,15 +1,17 @@
 #include "MainWindow.h"
-#include "ui_MainWindow.h"
 
 #include <QPushButton>
 
 #include "helpers/MenuRegistry.h"
+#include "ui_MainWindow.h"
 
 using namespace templex;
 using namespace templex::frontend;
 
 MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), ui(new Ui::MainWindow)
 {
+    MenuRegistry::buildMenuRegistry();
+
     initContext();
     initUi();
 }
@@ -23,33 +25,33 @@ void MainWindow::initUi()
 {
     ui->setupUi(this);
 
-    MenuRegistry::buildMenuRegistry();
+    showMaximized();
 
-    initTopMenu();
-    initLeftMenu();
+    initMenu();
 }
 
-void MainWindow::initTopMenu()
+void MainWindow::initMenu()
 {
-    auto mainMenuItems = MenuRegistry::getMainMenu();
-    for (auto& name : mainMenuItems) {
-        QFrame* wrapper     = new QFrame(this);
-        QHBoxLayout* layout = new QHBoxLayout();
-        layout->setContentsMargins(0, 0, 0, 0);
+    auto* layout = new QHBoxLayout(this);
+    layout->setContentsMargins(0, 0, 0, 0);
+    layout->setSpacing(0);
 
-        QPushButton* button = new QPushButton(this);
-        button->setText(name);
+    for (auto& mainMenu : MenuRegistry::getMainMenu()) {
+        auto* wrapper      = new QFrame(this);
+        auto* buttonLayout = new QHBoxLayout();
+        auto* button       = new QPushButton(this);
 
-        layout->addWidget(button);
+        buttonLayout->setContentsMargins(0, 0, 0, 0);
+        button->setText(mainMenu.getLabel());
+        button->setProperty("menu", true);
 
-        button->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
-        wrapper->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
-
-        wrapper->setLayout(layout);
+        buttonLayout->addWidget(button);
+        wrapper->setLayout(buttonLayout);
+        layout->addWidget(wrapper);
     }
-}
 
-void MainWindow::initLeftMenu() {}
+    layout->addStretch(1);
+}
 
 MainWindow::~MainWindow()
 {

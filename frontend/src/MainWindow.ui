@@ -6,12 +6,12 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1280</width>
-    <height>768</height>
+    <width>448</width>
+    <height>270</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>MainWindow</string>
+   <string>Templex client</string>
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QVBoxLayout" name="verticalLayout" stretch="1,0">
@@ -19,16 +19,16 @@
      <number>0</number>
     </property>
     <property name="leftMargin">
-     <number>9</number>
+     <number>0</number>
     </property>
     <property name="topMargin">
-     <number>9</number>
+     <number>0</number>
     </property>
     <property name="rightMargin">
-     <number>9</number>
+     <number>0</number>
     </property>
     <property name="bottomMargin">
-     <number>9</number>
+     <number>0</number>
     </property>
     <item>
      <layout class="QHBoxLayout" name="mainLayout" stretch="0,1">
@@ -49,17 +49,20 @@
       </property>
       <item>
        <layout class="QVBoxLayout" name="leftSidePanel">
+        <property name="spacing">
+         <number>6</number>
+        </property>
         <property name="leftMargin">
-         <number>9</number>
+         <number>0</number>
         </property>
         <property name="topMargin">
-         <number>9</number>
+         <number>0</number>
         </property>
         <property name="rightMargin">
-         <number>9</number>
+         <number>0</number>
         </property>
         <property name="bottomMargin">
-         <number>9</number>
+         <number>0</number>
         </property>
        </layout>
       </item>
@@ -89,17 +92,20 @@
            <enum>QFrame::Raised</enum>
           </property>
           <layout class="QHBoxLayout" name="horizontalLayout_2">
+           <property name="spacing">
+            <number>0</number>
+           </property>
            <property name="leftMargin">
-            <number>9</number>
+            <number>0</number>
            </property>
            <property name="topMargin">
-            <number>9</number>
+            <number>0</number>
            </property>
            <property name="rightMargin">
-            <number>9</number>
+            <number>0</number>
            </property>
            <property name="bottomMargin">
-            <number>9</number>
+            <number>0</number>
            </property>
           </layout>
          </widget>

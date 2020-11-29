@@ -11,6 +11,8 @@ find_package(Qt5Gui)
 add_executable(templex_frontend
     src/main.cpp
 
+    resources/res.qrc
+
     src/MainWindow.cpp
     src/MainWindow.ui
     src/MainWindow.h
