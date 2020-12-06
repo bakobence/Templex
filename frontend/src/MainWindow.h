@@ -2,6 +2,10 @@
 
 #include <QMainWindow>
 
+#include <QPushButton>
+
+#include "helpers/MenuRegistry.h"
+
 namespace templex {
 namespace frontend {
 
@@ -21,6 +25,7 @@ private:
     void initUi();
 
     void initMenu();
+    void setupSubMenus(const MenuRegistry::MenuData& mainMenuItem);
 
 private:
     Ui::MainWindow* ui;

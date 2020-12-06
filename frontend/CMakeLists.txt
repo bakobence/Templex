@@ -17,8 +17,12 @@ add_executable(templex_frontend
     src/MainWindow.ui
     src/MainWindow.h
 
+    src/helpers/GlobalDefines.h
     src/helpers/MenuRegistry.cpp
-    src/helpers/MenuRegistry.h)
+    src/helpers/MenuRegistry.h
+
+    src/ui/classes/instantiations/ClassInstantiationsPage.cpp
+    src/ui/classes/instantiations/ClassInstantiationsPage.h)
 
 set_property(TARGET templex_frontend PROPERTY CXX_STANDARD 17)
 set_property(TARGET templex_frontend PROPERTY CXX_STANDARD_REQUIRED ON)

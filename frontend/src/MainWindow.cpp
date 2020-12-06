@@ -1,8 +1,10 @@
 #include "MainWindow.h"
 
+#include <QDebug>
 #include <QPushButton>
 
-#include "helpers/MenuRegistry.h"
+#include <iostream>
+
 #include "ui_MainWindow.h"
 
 using namespace templex;
@@ -25,32 +27,71 @@ void MainWindow::initUi()
 {
     ui->setupUi(this);
 
-    showMaximized();
+    resize(1280, 768);
 
     initMenu();
 }
 
 void MainWindow::initMenu()
 {
-    auto* layout = new QHBoxLayout(this);
-    layout->setContentsMargins(0, 0, 0, 0);
-    layout->setSpacing(0);
-
     for (auto& mainMenu : MenuRegistry::getMainMenu()) {
-        auto* wrapper      = new QFrame(this);
-        auto* buttonLayout = new QHBoxLayout();
-        auto* button       = new QPushButton(this);
-
-        buttonLayout->setContentsMargins(0, 0, 0, 0);
+        auto* button = new QPushButton(this);
         button->setText(mainMenu.getLabel());
-        button->setProperty("menu", true);
+        button->setProperty("menu", "item");
+        ui->topPanel->layout()->addWidget(button);
 
-        buttonLayout->addWidget(button);
-        wrapper->setLayout(buttonLayout);
-        layout->addWidget(wrapper);
+        connect(button, &QPushButton::clicked, this, [mainMenu, button, this] {
+            setupSubMenus(mainMenu);
+
+            for (auto* button : MenuRegistry::getMainMenuButtons()) {
+                button->setEnabled(true);
+            }
+
+            button->setEnabled(false);
+        });
+
+        MenuRegistry::registerMainButton(mainMenu, button);
     }
 
-    layout->addStretch(1);
+    static_cast<QHBoxLayout*>(ui->topPanel->layout())->addStretch(1);
+
+    auto* exitButton = new QPushButton(this);
+    exitButton->setText("Exit");
+    exitButton->setProperty("menu", "item");
+
+    ui->topPanel->layout()->addWidget(exitButton);
+
+    ui->logoMain->setText("Templex");
+    ui->logoMain->setProperty("logo", "main");
+    ui->logoSub->setText("static-analyzer");
+    ui->logoSub->setProperty("logo", "sub");
+
+    emit MenuRegistry::getMainMenuButtons().first()->clicked();
+}
+
+void MainWindow::setupSubMenus(const MenuRegistry::MenuData& mainMenuItem)
+{
+    while (QLayoutItem* item = ui->subMenuWrapper->layout()->takeAt(0)) {
+        if (QWidget* widget = item->widget())
+            widget->deleteLater();
+
+        delete item;
+    }
+
+    MenuRegistry::clearSubMenu();
+
+    for (auto& subMenu : MenuRegistry::getSubMenu(mainMenuItem)) {
+        auto* button = new QPushButton(this);
+        button->setText(subMenu.getLabel());
+        button->setProperty("submenu", "item");
+        ui->subMenuWrapper->layout()->addWidget(button);
+
+        MenuRegistry::registerButton(subMenu, button);
+    }
+
+    static_cast<QBoxLayout*>(ui->subMenuWrapper->layout())->addStretch(1);
+
+    emit MenuRegistry::getSubMenuButtons().first()->click();
 }
 
 MainWindow::~MainWindow()

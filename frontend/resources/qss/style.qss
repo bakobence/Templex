@@ -1,0 +1,82 @@
+
+/*
+ *              MAIN MENU
+ */
+
+
+/*
+ *          Blue header:    #0097A7
+ *          Dark blue side: #006978
+ *
+ */
+
+
+templex--frontend--MainWindow QFrame#topPanel {
+    background-color: #0097A7;
+}
+
+templex--frontend--MainWindow QFrame#logoWrapper {
+    background-color: #0097A7;
+    min-height: 44px;
+}
+
+templex--frontend--MainWindow QFrame#subMenuWrapper {
+    background-color: #006978;
+    min-width: 125px;
+}
+
+QPushButton[menu="item"] {
+    font-size: 13px;
+    color: white;
+    border: none;
+    border-radius: 0;
+    height: 44px;
+    width: 80px;
+    padding: 0;
+    margin: 0;
+    background-color: #0097A7;
+    background-position: center left;
+}
+
+QPushButton[menu="item"]:!enabled {
+    background-color: rgba(255, 255, 255, 48);
+}
+
+QPushButton[menu="item"]:hover {
+    background-color: rgba(255, 255, 255, 48);
+}
+
+
+QPushButton[submenu="item"] {
+    font-size: 13px;
+    color: white;
+    border: none;
+    border-radius: 0;
+    height: 44px;
+    width: 80px;
+    padding: 0;
+    margin: 0;
+    background-color: #006978;
+    background-position: center left;
+}
+
+QPushButton[submenu="item"]:hover {
+    background-color: rgba(255, 255, 255, 48);
+}
+
+QPushButton[submenu="item"]:!enabled {
+    background-color: rgba(255, 255, 255, 48);
+}
+
+QLabel[logo="main"] {
+    padding-top: 1px;
+    font: bold;
+    color: white;
+    font-size: 15px;
+    text-transform: uppercase;
+}
+
+QLabel[logo="sub"] {
+    color: white;
+    font-size: 12px;
+}

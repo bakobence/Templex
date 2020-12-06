@@ -4,7 +4,6 @@ using namespace templex;
 using namespace templex::frontend;
 
 QList<MenuRegistry::MenuData> MenuRegistry::mainMenus_;
-
 QHash<MenuRegistry::MenuData, QList<MenuRegistry::MenuData>> MenuRegistry::subMenus_;
 
 void MenuRegistry::buildMenuRegistry()
@@ -33,4 +32,22 @@ MenuRegistry::getSubMenu(const MenuRegistry::MenuData& mainMenuItem)
     }
 
     return subMenus_[mainMenuItem];
+}
+
+void MenuRegistry::registerMainButton(const MenuData &menuItem, QPushButton *button) {
+    if (!mainMenus_.contains(menuItem)) {
+        return;
+    }
+
+    mainMenus_[mainMenus_.indexOf(menuItem)].setButton(button);
+}
+
+QList<QPushButton*> MenuRegistry::getMainMenuButtons() {
+    QList<QPushButton*> buttons;
+
+    for (auto& mainMenuData : mainMenus_) {
+        buttons.push_back(mainMenuData.getButton());
+    }
+
+    return buttons;
 }
