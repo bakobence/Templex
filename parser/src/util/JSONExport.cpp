@@ -1,38 +1,18 @@
-#include "TypeCache.h"
+#include "JSONExport.h"
+
+#include <fstream>
 
 #include <rapidjson/document.h>
 #include <rapidjson/ostreamwrapper.h>
 #include <rapidjson/prettywriter.h>
 #include <rapidjson/stringbuffer.h>
 
-#include <algorithm>
-#include <fstream>
-#include <utility>
+#include "common/cache/TypeCache.h"
 
 using namespace templex;
 using namespace templex::parser;
 
-void TypeCache::dump() const
-{
-    llvm::outs() << "\n\n_______________Dumping type cache______________\n\n";
-    for (auto entry : instantiations_) {
-        auto key = entry.first;
-        auto val = entry.second;
-        llvm::outs() << "Class Template: " << key->getClassName() << "\n";
-        for (auto instantiation : val) {
-            llvm::outs() << "  ";
-            for (auto parameter : instantiation->getActualParameters()) {
-                llvm::outs() << parameter->getParameterName() << "="
-                             << parameter->getActualParameter() << " ";
-            }
-            llvm::outs() << "\n";
-        }
-
-        llvm::outs() << "\n\n";
-    }
-}
-
-void TypeCache::exportJSON() const
+void JSONExport::exportCache()
 {
     using namespace rapidjson;
 
@@ -40,18 +20,22 @@ void TypeCache::exportJSON() const
     d.SetObject();
 
     auto& allocator = d.GetAllocator();
+    auto& cache     = model::TypeCache::getInstance();
+
+    cache.cleanCache();
+    cache.trimPaths();
+    cache.createAggregation();
 
     // Exporting classes.
     Value classes(kArrayType);
-
-    for (auto entry : instantiations_) {
+    for (auto entryKey : cache.getClassTemplates()) {
 
         Value type(kObjectType);
         {
             {
                 Value className(kStringType);
 
-                auto value = entry.first->getClassName();
+                auto value = entryKey->getName();
 
                 className.SetString(value.c_str(), value.size(), allocator);
 
@@ -61,14 +45,14 @@ void TypeCache::exportJSON() const
             {
                 Value parameters(kArrayType);
 
-                auto parameterList = entry.first->getParameterList();
+                auto parameterList = entryKey->getParameterList();
                 for (auto parameter : parameterList) {
 
                     Value parameterValue(kObjectType);
                     {
                         Value kind(kStringType);
 
-                        auto kindValue = parameter->getTypeAsString();
+                        auto kindValue = parameter->getType();
 
                         kind.SetString(kindValue.c_str(),
                                        kindValue.size(),
@@ -98,7 +82,7 @@ void TypeCache::exportJSON() const
             {
                 Value instantiations(kArrayType);
 
-                for (auto instantiation : entry.second) {
+                for (auto instantiation : cache.getInstantiationsFor(entryKey)) {
 
                     Value instantiationValue(kObjectType);
 
@@ -114,48 +98,66 @@ void TypeCache::exportJSON() const
 
                     {
                         Value actualParameters(kArrayType);
-
                         auto params = instantiation->getActualParameters();
                         for (auto actualParameter : params) {
-
                             Value param(kObjectType);
-
-                            {
-                                Value kind(kStringType);
-
-                                auto value = actualParameter->getTypeAsString();
-
-                                kind.SetString(value.c_str(),
-                                               value.size(),
-                                               allocator);
-
-                                param.AddMember("kind", kind, allocator);
-                            }
-
                             {
                                 Value actual(kStringType);
-
                                 auto value = actualParameter->getActualParameter();
-
                                 actual.SetString(value.c_str(),
                                                  value.size(),
                                                  allocator);
 
                                 param.AddMember("actual", actual, allocator);
                             }
-
                             actualParameters.PushBack(param.Move(), allocator);
                         }
-
-                        instantiationValue.AddMember("params",
+                        instantiationValue.AddMember("arguments",
                                                      actualParameters,
                                                      allocator);
                     }
-
                     instantiations.PushBack(instantiationValue.Move(), allocator);
                 }
+                type.AddMember("instantiations", instantiations, allocator);
+            }
 
-                type.AddMember("instantiation", instantiations, allocator);
+            {
+                Value aggregations(kArrayType);
+                for (auto& [instantiation, aggregation] :
+                     cache.getAggregationsFor(entryKey)) {
+                    Value aggregationObject(kObjectType);
+                    {
+                        Value arguments(kArrayType);
+                        for (auto arg : instantiation->getActualParameters()) {
+                            Value argumentObject(kObjectType);
+                            {
+                                Value actualString(kStringType);
+                                auto actual = arg->getActualParameter();
+                                actualString.SetString(actual.c_str(),
+                                                       actual.size(),
+                                                       allocator);
+                                argumentObject.AddMember("actual",
+                                                         actualString,
+                                                         allocator);
+                            }
+                            arguments.PushBack(argumentObject.Move(), allocator);
+                        }
+
+                        aggregationObject.AddMember("arguments",
+                                                    arguments,
+                                                    allocator);
+                    }
+                    {
+                        Value aggregationValue(kNumberType);
+                        aggregationValue.SetInt(aggregation);
+                        aggregationObject.AddMember("aggregation",
+                                                    aggregationValue,
+                                                    allocator);
+                    }
+                    aggregations.PushBack(aggregationObject.Move(), allocator);
+                }
+
+                type.AddMember("aggregations", aggregations, allocator);
             }
         }
 
@@ -164,54 +166,11 @@ void TypeCache::exportJSON() const
 
     d.AddMember("classes", classes, allocator);
 
-    std::ofstream f("result_json.txt");
+    std::ofstream f("/templex/result/results.json");
     OStreamWrapper osw(f);
 
     PrettyWriter<OStreamWrapper> writer(osw);
     d.Accept(writer);
 
     f.close();
-}
-
-void TypeCache::addClassTemplate(ClassTemplatePtr classTemplate)
-{
-    instantiations_.try_emplace(classTemplate, ClassInstantiations());
-}
-
-void TypeCache::addClassInstantiation(ClassInstantiationPtr classInstantiation)
-{
-    // The instantiation contains a pointer to the same object that we use as a key
-    // in the cache.
-    auto key = classInstantiation->getClassTemplate();
-
-    // Key should already be in the cache.
-    if (key == nullptr || instantiations_.find(key) == instantiations_.end()) {
-        return;
-    }
-
-    instantiations_.at(key).emplace_back(classInstantiation);
-}
-
-bool TypeCache::containsClassName(const std::string& className) const
-{
-    return instantiations_.find(makeClassKey(className)) != instantiations_.end();
-}
-
-ClassTemplatePtr
-TypeCache::getClassTemplateByClassName(const std::string& className) const
-{
-    // Constructing a key for a faster lookup.
-    auto key = makeClassKey(className);
-
-    if (auto it = instantiations_.find(key); it != instantiations_.end()) {
-        return it->first;
-
-    } else {
-        return nullptr;
-    }
-}
-
-ClassTemplatePtr TypeCache::makeClassKey(const std::string& className) const
-{
-    return std::make_shared<ClassTemplate>(className);
 }

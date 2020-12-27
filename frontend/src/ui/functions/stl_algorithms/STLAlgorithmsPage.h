@@ -1,26 +1,25 @@
 #pragma once
 
-#include "ui/IPage.h"
+#include "ui/PageBase.h"
 
 namespace templex {
 namespace frontend {
+namespace Ui {
+class STLAlgorithmsPage;
+}
 
-class PageBase
-        : public QWidget
-        , public IPage
-{
+class STLAlgorithmsPage : public PageBase {
     Q_OBJECT
 
 public:
-    PageBase();
-    ~PageBase();
+    STLAlgorithmsPage();
 
-protected:
     void initialize() override;
     void deinitialize() override;
     QString pageName() override;
-    QWidget* widget() override { return this; }
 
+private:
+    Ui::STLAlgorithmsPage* ui_;
 };
 
 } // namespace frontend

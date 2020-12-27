@@ -4,7 +4,7 @@
 #include <clang/Basic/SourceManager.h>
 #include <llvm/ADT/StringRef.h>
 
-#include "util/TypeCache.h"
+#include "common/cache/TypeCache.h"
 
 namespace templex {
 namespace parser {
@@ -16,11 +16,16 @@ public:
     bool shouldVisitTemplateInstantiations() const { return true; }
 
     bool VisitClassTemplateDecl(clang::ClassTemplateDecl* D);
+    bool VisitFunctionTemplateDecl(clang::FunctionTemplateDecl* D);
 
-    bool VisitClassTemplateSpecializationDecl(clang::ClassTemplateSpecializationDecl* D);
+    bool
+    VisitClassTemplateSpecializationDecl(clang::ClassTemplateSpecializationDecl* D);
 
 private:
     std::string getDeclLocation(clang::SourceLocation location) const;
+    std::string sanitizeType(clang::QualType type) const;
+
+    bool shouldSkipDecl(const clang::SourceLocation& location);
 
 private:
     clang::SourceManager& sourceManager_;

@@ -1,7 +1,7 @@
 #pragma once
 
+#include <QHash>
 #include <QMainWindow>
-
 #include <QPushButton>
 
 #include "helpers/MenuRegistry.h"
@@ -27,8 +27,15 @@ private:
     void initMenu();
     void setupSubMenus(const MenuRegistry::MenuData& mainMenuItem);
 
+    void createPage(const MenuRegistry::MenuData& subMenuItem);
+
 private:
     Ui::MainWindow* ui;
+
+    QHash<MenuRegistry::MenuData, QPushButton*> mainMenuButtons_;
+    QHash<MenuRegistry::MenuData, QPushButton*> subMenuButtons_;
+
+    std::shared_ptr<IPage> currentPage_;
 };
 
 } // namespace frontend

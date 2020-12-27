@@ -1,53 +1,69 @@
 #include "MenuRegistry.h"
 
+#include "ui/classes/instantiations/ClassInstantiationsPage.h"
+#include "ui/classes/statistics/ClassStatisticsPage.h"
+#include "ui/classes/stl_containers/STLContainersPage.h"
+#include "ui/functions/stl_algorithms/STLAlgorithmsPage.h"
+
 using namespace templex;
 using namespace templex::frontend;
 
-QList<MenuRegistry::MenuData> MenuRegistry::mainMenus_;
-QHash<MenuRegistry::MenuData, QList<MenuRegistry::MenuData>> MenuRegistry::subMenus_;
+QMap<MenuRegistry::MenuData, QList<MenuRegistry::MenuData>>
+    MenuRegistry::menuStructure_;
+
+QMap<MenuRegistry::MenuData, std::function<std::shared_ptr<IPage>()>>
+    MenuRegistry::pagesCreators_;
 
 void MenuRegistry::buildMenuRegistry()
 {
-    MenuRegistry::MenuData classes(0, "Classes");
-    MenuRegistry::MenuData functions(1, "Functions");
+    qDebug() << "Building up menu registry";
 
-    mainMenus_ = {{0, "Classes"}, {1, "Functions"}};
+    int mainIdPool = 0;
+    MenuRegistry::MenuData classes(mainIdPool++, "Classes");
+    MenuRegistry::MenuData functions(mainIdPool++, "Functions");
+    MenuRegistry::MenuData loadData(mainIdPool++, "Load JSON");
 
-    subMenus_ = {
-        {mainMenus_[0], {{0, "Instantiations"}, {1, "STL containers"}}},
-        {mainMenus_[1],
-         {{0, "Instantiations"}, {1, "STL algorithm"}, {2, "Comparators"}}}};
+    int subIdPool = 0;
+    registerPage<ClassInstantiationsPage>(subIdPool++, "Instantiations", classes);
+    registerPage<ClassStatisticsPage>(subIdPool++, "Statistics", classes);
+    registerPage<STLContainersPage>(subIdPool++, "STL Containers", classes);
+    registerPage<STLAlgorithmsPage>(subIdPool++, "STL Algorithms", functions);
+    registerPage<STLAlgorithmsPage>(subIdPool++, "STL Algorithms 2", functions);
+
+    /*
+
+    MenuRegistry::MenuData classInstantiations(0, "Instantiations");
+
+    MenuRegistry::MenuData classStlContainers(1, "STL containers");
+
+    MenuRegistry::MenuData functionsInstantiations(0, "Instantiations");
+    MenuRegistry::MenuData functionsStlContainers(1, "STL algorithms");
+    MenuRegistry::MenuData functionsComparators(2, "Comparators");
+
+    */
 }
 
 QList<MenuRegistry::MenuData> MenuRegistry::getMainMenu()
 {
-    return mainMenus_;
+    return menuStructure_.keys();
 }
 
 QList<MenuRegistry::MenuData>
-MenuRegistry::getSubMenu(const MenuRegistry::MenuData& mainMenuItem)
+MenuRegistry::getSubMenus(const MenuRegistry::MenuData& mainMenuItem)
 {
-    if (!subMenus_.contains(mainMenuItem)) {
+    if (!menuStructure_.contains(mainMenuItem)) {
         throw std::runtime_error("Invalid main menu index");
     }
 
-    return subMenus_[mainMenuItem];
+    return menuStructure_.value(mainMenuItem);
 }
 
-void MenuRegistry::registerMainButton(const MenuData &menuItem, QPushButton *button) {
-    if (!mainMenus_.contains(menuItem)) {
-        return;
+std::function<std::shared_ptr<IPage>()>
+MenuRegistry::getCreator(const MenuRegistry::MenuData& menu)
+{
+    if (!pagesCreators_.contains(menu)) {
+        return nullptr;
     }
 
-    mainMenus_[mainMenus_.indexOf(menuItem)].setButton(button);
-}
-
-QList<QPushButton*> MenuRegistry::getMainMenuButtons() {
-    QList<QPushButton*> buttons;
-
-    for (auto& mainMenuData : mainMenus_) {
-        buttons.push_back(mainMenuData.getButton());
-    }
-
-    return buttons;
+    return pagesCreators_[menu];
 }

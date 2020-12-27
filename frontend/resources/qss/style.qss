@@ -80,3 +80,30 @@ QLabel[logo="sub"] {
     color: white;
     font-size: 12px;
 }
+
+QFrame {
+    border: none;
+}
+
+QTableView,
+QListView {
+    background-color: #e0e0e0;
+}
+
+QLabel[label="main"] {
+    font-size: 16px;
+    font: bold;
+    margin-bottom: 8px;
+}
+
+QLineEdit {
+    border-radius: 4px;
+    border: 1px solid black;
+}
+
+
+
+
+
+
+

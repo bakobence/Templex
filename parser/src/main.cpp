@@ -7,7 +7,8 @@
 #include <rapidjson/stringbuffer.h>
 
 #include "clang_implementation/ASTFrontendAction.h"
-#include "util/TypeCache.h"
+#include "common/cache/TypeCache.h"
+#include "util/JSONExport.h"
 
 namespace cl = llvm::cl;
 
@@ -38,8 +39,9 @@ auto main(int argc, const char** argv) -> int
                               templex::parser::ASTFrontendAction>()
                               .get());
 
-    TypeCache::getInstance().dump();
-    TypeCache::getInstance().exportJSON();
+    JSONExport::exportCache();
+
+    model::TypeCache::getInstance().dump();
 
     return result;
 }

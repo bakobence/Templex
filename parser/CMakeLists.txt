@@ -1,4 +1,3 @@
-    set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 add_executable(templex_parser
     src/main.cpp
@@ -9,17 +8,8 @@ add_executable(templex_parser
     src/clang_implementation/ASTFrontendAction.h
     src/clang_implementation/ASTConsumer.cpp
     src/clang_implementation/ASTConsumer.h
-
-    src/model/ClassTemplate.cpp
-    src/model/ClassTemplate.h
-    src/model/ClassInstantiation.cpp
-    src/model/ClassInstantiation.h
-    src/model/TemplateParameter.cpp
-    src/model/TemplateParameter.h
-
-    src/util/Comparators.h
-    src/util/TypeCache.cpp
-    src/util/TypeCache.h
+    src/util/JSONExport.cpp
+    src/util/JSONExport.h
     src/util/Exceptions.cpp
     src/util/Exceptions.h)
 
@@ -52,4 +42,4 @@ target_include_directories(templex_parser
     PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src/
     PRIVATE ${CMAKE_BINARY_DIR})
 
-target_link_libraries(templex_parser PRIVATE LLVM clang-cpp)
+target_link_libraries(templex_parser PRIVATE LLVM clang-cpp templex_common)

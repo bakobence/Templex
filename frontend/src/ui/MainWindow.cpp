@@ -10,8 +10,12 @@
 using namespace templex;
 using namespace templex::frontend;
 
-MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), ui(new Ui::MainWindow)
+MainWindow::MainWindow(QWidget* parent)
+    : QMainWindow(parent),
+      ui(new Ui::MainWindow),
+      currentPage_(nullptr)
 {
+    qDebug() << "Initializing MainWindow";
     MenuRegistry::buildMenuRegistry();
 
     initContext();
@@ -27,7 +31,7 @@ void MainWindow::initUi()
 {
     ui->setupUi(this);
 
-    resize(1280, 768);
+    resize(1366, 768);
 
     initMenu();
 }
@@ -43,14 +47,14 @@ void MainWindow::initMenu()
         connect(button, &QPushButton::clicked, this, [mainMenu, button, this] {
             setupSubMenus(mainMenu);
 
-            for (auto* button : MenuRegistry::getMainMenuButtons()) {
-                button->setEnabled(true);
+            for (auto* mainButtons : mainMenuButtons_.values()) {
+                mainButtons->setEnabled(true);
             }
 
             button->setEnabled(false);
         });
 
-        MenuRegistry::registerMainButton(mainMenu, button);
+        mainMenuButtons_[mainMenu] = button;
     }
 
     static_cast<QHBoxLayout*>(ui->topPanel->layout())->addStretch(1);
@@ -66,11 +70,12 @@ void MainWindow::initMenu()
     ui->logoSub->setText("static-analyzer");
     ui->logoSub->setProperty("logo", "sub");
 
-    emit MenuRegistry::getMainMenuButtons().first()->clicked();
+    emit mainMenuButtons_[MenuRegistry::getMainMenu().first()]->click();
 }
 
 void MainWindow::setupSubMenus(const MenuRegistry::MenuData& mainMenuItem)
 {
+
     while (QLayoutItem* item = ui->subMenuWrapper->layout()->takeAt(0)) {
         if (QWidget* widget = item->widget())
             widget->deleteLater();
@@ -78,20 +83,48 @@ void MainWindow::setupSubMenus(const MenuRegistry::MenuData& mainMenuItem)
         delete item;
     }
 
-    MenuRegistry::clearSubMenu();
+    subMenuButtons_.clear();
 
-    for (auto& subMenu : MenuRegistry::getSubMenu(mainMenuItem)) {
+    for (auto& subMenu : MenuRegistry::getSubMenus(mainMenuItem)) {
         auto* button = new QPushButton(this);
         button->setText(subMenu.getLabel());
         button->setProperty("submenu", "item");
         ui->subMenuWrapper->layout()->addWidget(button);
 
-        MenuRegistry::registerButton(subMenu, button);
+        connect(button, &QPushButton::clicked, this, [this, button] {
+            for (auto subMenu : subMenuButtons_.keys()) {
+                if (auto mapButton = subMenuButtons_[subMenu]; mapButton == button) {
+                    mapButton->setEnabled(false);
+                    createPage(subMenu);
+                } else {
+                    mapButton->setEnabled(true);
+                }
+            }
+        });
+
+        subMenuButtons_[subMenu] = button;
     }
 
     static_cast<QBoxLayout*>(ui->subMenuWrapper->layout())->addStretch(1);
 
-    emit MenuRegistry::getSubMenuButtons().first()->click();
+    emit subMenuButtons_[MenuRegistry::getSubMenus(mainMenuItem).first()]->click();
+}
+
+void MainWindow::createPage(const MenuRegistry::MenuData& subMenu)
+{
+    if (currentPage_ != nullptr) {
+        currentPage_->deinitialize();
+    }
+
+    auto page = MenuRegistry::getCreator(subMenu)();
+
+    page->initialize();
+
+    currentPage_ = page;
+
+    qDebug() << "Navigating to page: " << currentPage_->pageName();
+
+    ui->contentWrapper->layout()->addWidget(currentPage_->widget());
 }
 
 MainWindow::~MainWindow()

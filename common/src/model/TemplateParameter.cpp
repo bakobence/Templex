@@ -1,7 +1,16 @@
-#include "TemplateParameter.h"
+#include "common/model/TemplateParameter.h"
+
+#include <iostream>
 
 using namespace templex;
-using namespace templex::parser;
+using namespace templex::model;
+
+TemplateParameter::TemplateParameter()
+    : parameterName_(std::string()),
+      type_(std::string()),
+      actualParameter_(std::string())
+{
+}
 
 TemplateParameter::TemplateParameter(const TemplateParameter& other)
 {
@@ -19,12 +28,12 @@ void TemplateParameter::setParameterName(const std::string& value)
     parameterName_ = value;
 }
 
-TemplateParameter::Type TemplateParameter::getType() const
+std::string TemplateParameter::getType() const
 {
     return type_;
 }
 
-void TemplateParameter::setType(Type value)
+void TemplateParameter::setType(const std::string& value)
 {
     type_ = value;
 }
@@ -37,18 +46,4 @@ std::string TemplateParameter::getActualParameter() const
 void TemplateParameter::setActualParameter(const std::string& value)
 {
     actualParameter_ = value;
-}
-
-std::string TemplateParameter::getTypeAsString() const
-{
-    switch (type_) {
-    case Type::TYPE:
-        return "Type";
-    case Type::NON_TYPE:
-        return "Non type";
-    case Type::TEMPLATE:
-        return "Template";
-    }
-
-    return "";
 }

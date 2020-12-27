@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE QtCreatorProject>
-<!-- Written by QtCreator 4.13.0, 2020-12-03T22:25:53. -->
+<!-- Written by QtCreator 4.13.0, 2020-12-24T01:23:53. -->
 <qtcreator>
  <data>
   <variable>EnvironmentId</variable>
@@ -97,11 +97,9 @@
     <value type="QString" key="CMake.Initial.Parameters">-GCodeBlocks - Ninja
 -DCMAKE_BUILD_TYPE:String=Debug
 -DCMAKE_CXX_COMPILER:STRING=%{Compiler:Executable:Cxx}
--DCMAKE_C_COMPILER:STRING=%{Compiler:Executable:C}
--DCMAKE_PREFIX_PATH:STRING=%{Qt:QT_INSTALL_PREFIX}
--DQT_QMAKE_EXECUTABLE:STRING=%{Qt:qmakeExecutable}</value>
+-DCMAKE_PREFIX_PATH:STRING=%{Qt:QT_INSTALL_PREFIX}</value>
     <value type="int" key="EnableQmlDebugging">2</value>
-    <value type="QString" key="ProjectExplorer.BuildConfiguration.BuildDirectory">D:\dev\templex\templex\templex\..\build-templex-Desktop_Qt_5_15_1_MSVC2019_64bit-Debug</value>
+    <value type="QString" key="ProjectExplorer.BuildConfiguration.BuildDirectory">D:\dev\templex\templex\build\windows</value>
     <valuemap type="QVariantMap" key="ProjectExplorer.BuildConfiguration.BuildStepList.0">
      <valuemap type="QVariantMap" key="ProjectExplorer.BuildStepList.Step.0">
       <value type="QString" key="CMakeProjectManager.MakeStep.AdditionalArguments"></value>
@@ -356,7 +354,7 @@
     <value type="QString" key="ProjectExplorer.ProjectConfiguration.DisplayName">templex_frontend</value>
     <value type="QString" key="ProjectExplorer.ProjectConfiguration.Id">CMakeProjectManager.CMakeRunConfiguration.templex_frontend</value>
     <value type="QString" key="ProjectExplorer.RunConfiguration.BuildKey">templex_frontend</value>
-    <value type="QString" key="RunConfiguration.Arguments"></value>
+    <value type="QString" key="RunConfiguration.Arguments">-p D:\dev\templex\templex\workspace\results.json</value>
     <value type="bool" key="RunConfiguration.Arguments.multi">false</value>
     <value type="QString" key="RunConfiguration.OverrideDebuggerStartup"></value>
     <value type="bool" key="RunConfiguration.UseCppDebugger">false</value>
@@ -366,7 +364,7 @@
     <value type="bool" key="RunConfiguration.UseQmlDebugger">false</value>
     <value type="bool" key="RunConfiguration.UseQmlDebuggerAuto">true</value>
     <value type="QString" key="RunConfiguration.WorkingDirectory"></value>
-    <value type="QString" key="RunConfiguration.WorkingDirectory.default">D:/dev/templex/templex/build-templex-Desktop_Qt_5_15_1_MSVC2019_64bit-Debug/frontend</value>
+    <value type="QString" key="RunConfiguration.WorkingDirectory.default">D:/dev/templex/templex/build/windows/frontend</value>
    </valuemap>
    <value type="int" key="ProjectExplorer.Target.RunConfigurationCount">1</value>
   </valuemap>
