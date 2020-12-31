@@ -1,6 +1,7 @@
 #include <QApplication>
 #include <QDebug>
 #include <QFile>
+#include <QMessageBox>
 #include <QtGlobal>
 
 #include "ui/MainWindow.h"
@@ -21,14 +22,23 @@ auto main(int argc, char* argv[]) -> int
     }
 
     QApplication app(argc, argv);
-    app.setApplicationName("Templex client");
-    app.setApplicationDisplayName("Templex client");
+    app.setApplicationName("Templex frontend");
+    app.setApplicationDisplayName("Templex frontend");
     app.setApplicationVersion("0.1.0");
     app.setStyleSheet(style);
 
-    JSONImport::importCache();
+    bool success = JSONImport::importCache();
 
-    qDebug() << "Starting: Templex client 0.1.0";
+    if (!success) {
+        QMessageBox::critical(
+            nullptr,
+            "Error",
+            "Unable to parse the input JSON file, the program will now exit.");
+
+        return 1;
+    }
+
+    qDebug() << "Starting: Templex frontend 0.1.0";
 
     MainWindow window;
 

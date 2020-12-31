@@ -25,8 +25,11 @@ void STLContainersPage::initialize()
     aggregationCache_ =
         model::TypeCache::getInstance().getStlContainersAggregationCache();
 
-    qDebug() << "Instantiation cache count: " << instantiationCache_.size();
-    qDebug() << "Aggregation cache count: " << aggregationCache_.size();
+    if (aggregationCache_.empty() && instantiationCache_.empty()) {
+        ui_->stackedWidget->setCurrentIndex(1);
+    } else {
+        ui_->stackedWidget->setCurrentIndex(0);
+    }
 
     aggregationModel_ = new AggregationModel(this);
     aggregationProxy_ = new AggregationProxy(this);
@@ -49,7 +52,8 @@ void STLContainersPage::initialize()
     aggregationProxy_->setSourceModel(aggregationModel_);
     aggregationTable_->setModel(aggregationProxy_);
     aggregationTable_->setSelectionBehavior(QAbstractItemView::SelectRows);
-    aggregationTable_->setAlternatingRowColors(true);
+    aggregationTable_->setSelectionMode(
+        QAbstractItemView::SelectionMode::SingleSelection);
     aggregationTable_->setItemDelegate(new BasicDelegate(aggregationTable_));
     aggregationTable_->setHorizontalScrollMode(QAbstractItemView::ScrollPerPixel);
     aggregationTable_->horizontalHeader()->setStretchLastSection(true);
@@ -57,6 +61,7 @@ void STLContainersPage::initialize()
         QHeaderView::Interactive);
     aggregationTable_->horizontalHeader()->setDefaultAlignment(Qt::AlignCenter);
     aggregationTable_->horizontalHeader()->setCascadingSectionResizes(true);
+    aggregationTable_->horizontalHeader()->setDefaultSectionSize(210);
     aggregationTable_->verticalHeader()->setVisible(false);
     aggregationTable_->setSortingEnabled(true);
 
@@ -76,6 +81,8 @@ void STLContainersPage::initialize()
             &QItemSelectionModel::selectionChanged,
             this,
             &STLContainersPage::onInstantiationSelected);
+
+    templateSelector_->setCurrentIndex(0);
 }
 
 void STLContainersPage::onTemplateSelected(model::TemplatePtr templatePtr)
@@ -85,6 +92,8 @@ void STLContainersPage::onTemplateSelected(model::TemplatePtr templatePtr)
     auto instantiations = aggregationCache_[templatePtr];
 
     aggregationModel_->loadData(templatePtr, instantiations);
+
+    aggregationTable_->selectRow(0);
 }
 
 void STLContainersPage::onInstantiationSelected()

@@ -101,9 +101,6 @@ QLineEdit {
     border: 1px solid black;
 }
 
-
-
-
-
-
-
+QTableView::item::selected {
+ background-color: #BFBFBF;
+}

@@ -9,6 +9,8 @@
 
 #include "common/cache/TypeCache.h"
 
+#include <llvm/Support/raw_ostream.h>
+
 using namespace templex;
 using namespace templex::parser;
 
@@ -165,6 +167,120 @@ void JSONExport::exportCache()
     }
 
     d.AddMember("classes", classes, allocator);
+
+    Value functions(kArrayType);
+    for (auto functionName : cache.getFunctionNames()) {
+        Value functionValue(kObjectType);
+        {
+            Value functionNameValue(kStringType);
+            functionNameValue.SetString(functionName.c_str(),
+                                        functionName.size(),
+                                        allocator);
+            functionValue.AddMember("functionName", functionNameValue, allocator);
+        }
+        {
+            Value overloadsValue(kArrayType);
+            for (auto overloadTemplate :
+                 cache.getOverloadTempaltesForFunction(functionName)) {
+                Value overloadValue(kObjectType);
+                {
+                    Value completeFunctionSignatureValue(kStringType);
+                    completeFunctionSignatureValue.SetString(
+                        overloadTemplate->getName().c_str(),
+                        overloadTemplate->getName().size(),
+                        allocator);
+                    overloadValue.AddMember("completeFunctionSignature",
+                                            completeFunctionSignatureValue,
+                                            allocator);
+                }
+                {
+                    Value templateParametersValue(kArrayType);
+                    for (auto overloadTemplateParameter :
+                         overloadTemplate->getParameterList()) {
+                        Value templateParameterValue(kObjectType);
+                        {
+                            Value templateParameterKindValue(kStringType);
+                            templateParameterKindValue.SetString(
+                                overloadTemplateParameter->getType().c_str(),
+                                overloadTemplateParameter->getType().size(),
+                                allocator);
+                            templateParameterValue.AddMember(
+                                "kind",
+                                templateParameterKindValue,
+                                allocator);
+                        }
+                        {
+                            Value templateParameterNameValue(kStringType);
+                            templateParameterNameValue.SetString(
+                                overloadTemplateParameter->getParameterName()
+                                    .c_str(),
+                                overloadTemplateParameter->getParameterName().size(),
+                                allocator);
+                            templateParameterValue.AddMember(
+                                "name",
+                                templateParameterNameValue,
+                                allocator);
+                        }
+
+                        templateParametersValue.PushBack(
+                            templateParameterValue.Move(),
+                            allocator);
+                    }
+                    overloadValue.AddMember("parameters",
+                                            templateParametersValue,
+                                            allocator);
+                }
+                {
+                    Value instantiationsValue(kArrayType);
+                    for (auto instantiation :
+                         cache.getFunctionOverloadInstantiationsFor(overloadTemplate,
+                                                                    functionName)) {
+                        Value instantiationValue(kObjectType);
+                        {
+                            Value poiValue(kStringType);
+                            poiValue.SetString(
+                                instantiation->getPointOfInstantiation().c_str(),
+                                instantiation->getPointOfInstantiation().size(),
+                                allocator);
+                            instantiationValue.AddMember("poi", poiValue, allocator);
+                        }
+                        {
+                            Value argumentsValues(kArrayType);
+                            for (auto argument :
+                                 instantiation->getActualParameters()) {
+                                Value argumentValue(kObjectType);
+                                {
+                                    Value argumentNameValue(kStringType);
+                                    argumentNameValue.SetString(
+                                        argument->getActualParameter().c_str(),
+                                        argument->getActualParameter().size(),
+                                        allocator);
+                                    argumentValue.AddMember("actual",
+                                                            argumentNameValue,
+                                                            allocator);
+                                }
+                                argumentsValues.PushBack(argumentValue.Move(),
+                                                         allocator);
+                            }
+                            instantiationValue.AddMember("arguments",
+                                                         argumentsValues,
+                                                         allocator);
+                        }
+                        instantiationsValue.PushBack(instantiationValue.Move(),
+                                                     allocator);
+                    }
+                    overloadValue.AddMember("instantiations",
+                                            instantiationsValue,
+                                            allocator);
+                }
+                overloadsValue.PushBack(overloadValue.Move(), allocator);
+            }
+            functionValue.AddMember("overloads", overloadsValue, allocator);
+        }
+        functions.PushBack(functionValue.Move(), allocator);
+    }
+
+    d.AddMember("functions", functions, allocator);
 
     std::ofstream f("/templex/result/results.json");
     OStreamWrapper osw(f);

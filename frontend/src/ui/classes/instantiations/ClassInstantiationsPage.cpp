@@ -42,7 +42,7 @@ void ClassInstantiationsPage::initView()
 
     instantiationProxyModel_->setSourceModel(instantiationsModel_);
     rightView_->setModel(instantiationProxyModel_);
-    rightView_->setSelectionBehavior(QAbstractItemView::SelectRows);
+    rightView_->setSelectionMode(QAbstractItemView::NoSelection);
     rightView_->setAlternatingRowColors(true);
     rightView_->setItemDelegate(new BasicDelegate(rightView_));
     rightView_->setHorizontalScrollMode(QAbstractItemView::ScrollPerPixel);

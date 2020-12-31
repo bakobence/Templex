@@ -9,9 +9,7 @@ add_executable(templex_parser
     src/clang_implementation/ASTConsumer.cpp
     src/clang_implementation/ASTConsumer.h
     src/util/JSONExport.cpp
-    src/util/JSONExport.h
-    src/util/Exceptions.cpp
-    src/util/Exceptions.h)
+    src/util/JSONExport.h)
 
 set_property(TARGET templex_parser PROPERTY CXX_STANDARD 17)
 set_property(TARGET templex_parser PROPERTY CXX_STANDARD_REQUIRED ON)

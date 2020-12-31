@@ -11,11 +11,4 @@ ASTConsumer::ASTConsumer(clang::SourceManager& sourceManager)
 void ASTConsumer::HandleTranslationUnit(clang::ASTContext& context)
 {
     visitor_.TraverseDecl(context.getTranslationUnitDecl());
-    /*
-    for (const auto& decl : context.getTranslationUnitDecl()->decls()) {
-        if (!context.getSourceManager().isInSystemHeader(decl->getLocation())) {
-            visitor_.TraverseDecl(decl);
-        }
-    }
-    */
 }

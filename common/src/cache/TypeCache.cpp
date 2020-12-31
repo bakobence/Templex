@@ -10,23 +10,7 @@ using namespace templex::model;
 void TypeCache::dump() const
 {
     std::cout << "\n\nDumping type cache\n";
-    for (auto entry : classes_) {
-        auto key = entry.first;
-        auto val = entry.second;
-        std::cout << "Class Template: " << key->getName() << "\n";
-        for (auto instantiation : val) {
-            std::cout << "  ";
-            for (auto parameter : instantiation->getActualParameters()) {
-                std::cout << parameter->getParameterName() << "="
-                          << parameter->getActualParameter() << " ";
-            }
-            std::cout << "\n";
-        }
-
-        std::cout << "\n\n";
-    }
-
-    for (auto& [key, value] : aggregation_) {
+    for (auto& [key, value] : classAggregations) {
         std::cout << "Class Template " << key->getName() << "\n";
         for (auto& [inst, aggregation] : value) {
             std::cout << "\t[ ";
@@ -38,6 +22,21 @@ void TypeCache::dump() const
         }
     }
 
+    for (auto& [functionName, cache] : functions_) {
+        std::cout << "Function Template: " << functionName << "\n";
+        for (auto& [templatePtr, instantiations] : cache) {
+            std::cout << "\tFunction ID: " << templatePtr->getName() << "\n";
+            for (auto instantiation : instantiations) {
+                std::cout << "\t\t[";
+                for (auto actualParam : instantiation->getActualParameters()) {
+                    std::cout << actualParam->getParameterName() << "="
+                              << actualParam->getActualParameter() << " ";
+                }
+                std::cout << "]\n";
+            }
+        }
+    }
+
     std::cout << "\n\n";
 }
 
@@ -46,11 +45,18 @@ void TypeCache::addClassTemplate(TemplatePtr classTemplate)
     classes_.try_emplace(classTemplate, Instantiations());
 }
 
+void TypeCache::addFunctionTemplate(TemplatePtr functionTemplate,
+                                    const std::string& functionName)
+{
+    functions_.try_emplace(functionName);
+    functions_[functionName].try_emplace(functionTemplate, Instantiations());
+}
+
 void TypeCache::addClassInstantiation(InstantiationPtr classInstantiation)
 {
     // The instantiation contains a pointer to the same object that we use as a key
     // in the cache.
-    auto key = classInstantiation->getClassTemplate();
+    auto key = classInstantiation->getTemplate();
 
     // Key should already be in the cache.
     if (key == nullptr || classes_.find(key) == classes_.end()) {
@@ -58,6 +64,25 @@ void TypeCache::addClassInstantiation(InstantiationPtr classInstantiation)
     }
 
     classes_.at(key).emplace_back(classInstantiation);
+}
+
+void TypeCache::addFunctionInstantiation(InstantiationPtr functionInstantiation,
+                                         const std::string& functionName)
+{
+    if (functions_.find(functionName) == functions_.end()) {
+        return;
+    }
+
+    auto functionTemplate = functionInstantiation->getTemplate();
+    auto cache            = functions_[functionName];
+
+    if (cache.find(functionTemplate) == cache.end()) {
+        return;
+    }
+
+    functions_.at(functionName)
+        .at(functionTemplate)
+        .push_back(functionInstantiation);
 }
 
 bool TypeCache::containsClassName(const std::string& className) const
@@ -83,6 +108,15 @@ std::vector<TemplatePtr> TypeCache::getClassTemplates() const
 {
     std::vector<TemplatePtr> returnValue;
     for (auto& entry : classes_) {
+        returnValue.push_back(entry.first);
+    }
+    return returnValue;
+}
+
+std::vector<std::string> TypeCache::getFunctionNames() const
+{
+    std::vector<std::string> returnValue;
+    for (auto& entry : functions_) {
         returnValue.push_back(entry.first);
     }
     return returnValue;
@@ -121,8 +155,8 @@ TypeCache::getAggregationsFor(TemplatePtr classTemplate) const
         return TypeCache::InstantiationAggregations();
     }
 
-    if (aggregation_.find(classTemplate) != aggregation_.end()) {
-        return aggregation_.at(classTemplate);
+    if (classAggregations.find(classTemplate) != classAggregations.end()) {
+        return classAggregations.at(classTemplate);
     }
 
     return TypeCache::InstantiationAggregations();
@@ -131,17 +165,43 @@ TypeCache::getAggregationsFor(TemplatePtr classTemplate) const
 void TypeCache::addClassInstantiationAggregation(InstantiationPtr inst, int value)
 {
     // Query the parent.
-    auto key = inst->getClassTemplate();
+    auto key = inst->getTemplate();
     if (key == nullptr)
         return;
 
     // If the parent is missing, just default init.
-    if (aggregation_.find(key) == aggregation_.end()) {
-        aggregation_.emplace(key, InstantiationAggregations());
+    if (classAggregations.find(key) == classAggregations.end()) {
+        classAggregations.emplace(key, InstantiationAggregations());
     }
 
     // Now add. We assume the initial cache building was valid.
-    aggregation_[key].push_back(std::make_pair(inst, value));
+    classAggregations[key].push_back(std::make_pair(inst, value));
+}
+
+std::vector<TemplatePtr>
+TypeCache::getOverloadTempaltesForFunction(const std::string& functionName) const
+{
+    if (functions_.find(functionName) == functions_.end())
+        return {};
+
+    std::vector<TemplatePtr> returnValue;
+    for (auto& [functionTemplate, instantiations] : functions_.at(functionName)) {
+        returnValue.push_back(functionTemplate);
+    }
+    return returnValue;
+}
+
+TypeCache::Instantiations TypeCache::getFunctionOverloadInstantiationsFor(
+    TemplatePtr functionTemplate, const std::string& functionName) const
+{
+    if (functions_.find(functionName) == functions_.end())
+        return {};
+
+    if (functions_.at(functionName).find(functionTemplate) ==
+        functions_.at(functionName).end())
+        return {};
+
+    return functions_.at(functionName).at(functionTemplate);
 }
 
 TypeCache::InstantiationsCache TypeCache::getStlContainersInstantiationCache() const
@@ -168,8 +228,8 @@ TypeCache::InstantiationAggregationsCache
 TypeCache::getStlContainersAggregationCache() const
 {
     TypeCache::InstantiationAggregationsCache returnValue;
-    std::copy_if(aggregation_.begin(),
-                 aggregation_.end(),
+    std::copy_if(classAggregations.begin(),
+                 classAggregations.end(),
                  std::inserter(returnValue, returnValue.end()),
                  [](auto& entry) -> bool {
                      bool contains = false;
@@ -194,6 +254,23 @@ void TypeCache::cleanCache()
             ++it;
         }
     }
+
+    for (auto it = functions_.cbegin(); it != functions_.cend();) {
+        auto cache = it->second;
+        for (auto cacheIt = cache.cbegin(); cacheIt != cache.cend();) {
+            if (cacheIt->second.empty()) {
+                functions_[it->first].erase(cacheIt++);
+            } else {
+                ++cacheIt;
+            }
+        }
+
+        if (it->second.empty()) {
+            functions_.erase(it++);
+        } else {
+            it++;
+        }
+    }
 }
 
 void TypeCache::trimPaths()
@@ -207,6 +284,17 @@ void TypeCache::trimPaths()
             tempPaths.emplace_back(instantiation->getPointOfInstantiation());
         }
     }
+    // Every function's
+    for (auto& [name, cache] : functions_) {
+        for (auto& [templatePtr, instantions] : cache) {
+            for (auto& instantiation : instantions) {
+                tempPaths.emplace_back(instantiation->getPointOfInstantiation());
+            }
+        }
+    }
+
+    if (tempPaths.empty())
+        return;
 
     // Calculate the amount of characters matching
     int stripLength = 0;
@@ -227,11 +315,22 @@ void TypeCache::trimPaths()
             break;
     }
 
+    // Now do the cut-cut
     for (auto& [key, value] : classes_) {
-        for (auto instantiation : value) {
+        for (auto& instantiation : value) {
             auto poi = instantiation->getPointOfInstantiation();
             poi.erase(0, stripLength);
             instantiation->setPointOfInstantiation(poi);
+        }
+    }
+
+    for (auto& [name, cache] : functions_) {
+        for (auto& [templatePtr, instantions] : cache) {
+            for (auto& instantiation : instantions) {
+                auto poi = instantiation->getPointOfInstantiation();
+                poi.erase(0, stripLength);
+                instantiation->setPointOfInstantiation(poi);
+            }
         }
     }
 }
@@ -239,7 +338,7 @@ void TypeCache::trimPaths()
 void TypeCache::createAggregation()
 {
     for (auto& [key, value] : classes_) {
-        auto& instantiations = aggregation_[key];
+        auto& instantiations = classAggregations[key];
 
         for (auto instantiation : value) {
 

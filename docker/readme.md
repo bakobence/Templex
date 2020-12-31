@@ -4,7 +4,7 @@ Docker can be either used for development, or deploying and using Templex every 
 
 ## Build
 
-Something about multistage building... This command should be executed fromt the top of the SOURCE tree.
+This command should be executed fromt the top of the SOURCE tree.
 
 `docker build -t templex:dev -f docker/Dockerfile .`
 

@@ -87,6 +87,7 @@ void ClassStatisticsPage::onClassTemplateSelected(
     std::shared_ptr<model::Template> classTemplate)
 {
     currentClassTemplate_ = classTemplate;
+    currentArguments_.clear();
 
     auto aggregation =
         model::TypeCache::getInstance().getAggregationsFor(classTemplate);
@@ -101,11 +102,16 @@ void ClassStatisticsPage::onClassTemplateSelected(
             max = aggregation;
 
         QString label;
+        std::vector<std::string> arguments;
         for (auto argument : instantiation->getActualParameters()) {
             label.append(QString("%1=%2 ")
                              .arg(argument->getParameterName().data())
                              .arg(argument->getActualParameter().data()));
+            arguments.push_back(argument->getActualParameter());
         }
+        label.replace('<', "&lt;");
+        label.replace('>', "&gt;");
+        currentArguments_.emplace_back(arguments);
         label.remove(label.size() - 1, 1);
         *set_ << aggregation;
         x_->append(label);
@@ -127,10 +133,9 @@ void ClassStatisticsPage::onBarHovered(bool status, int index, QBarSet* set)
 
     auto className = QString(currentClassTemplate_->getName().data());
     auto label     = x_->at(index);
-    auto paramList = label.split(' ');
     className.append('<');
-    for (auto arg : paramList) {
-        className.append(arg.split('=')[1]);
+    for (auto& arg : currentArguments_[index]) {
+        className.append(arg.data());
         className.append(',');
     }
     className.remove(className.size() - 1, 1);

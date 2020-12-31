@@ -32,7 +32,7 @@
    <item>
     <widget class="QLabel" name="bigLabel">
      <property name="text">
-      <string>Class templates</string>
+      <string>Templates</string>
      </property>
     </widget>
    </item>

@@ -22,8 +22,8 @@ public:
     Instantiation(const std::string& pointOfInstantiation);
 
 public:
-    TemplatePtr getClassTemplate() const;
-    void setClassTemplate(TemplatePtr classTemplate);
+    TemplatePtr getTemplate() const;
+    void setTemplate(TemplatePtr classTemplate);
 
     void setActualParameter(int parameterIndex, const std::string& value);
     std::vector<TemplateParameterPtr> getActualParameters() const;

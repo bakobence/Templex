@@ -13,4 +13,5 @@ RUN apt-get clean && apt-get auto-remove --yes
 RUN ln -s /usr/bin/gcc-9 /usr/bin/gcc && \
     ln -s /usr/bin/g++-9 /usr/bin/g++ && \
     ln -s /usr/bin/clang-format-10 /usr/bin/clang-format
-    
+
+EXPOSE 22

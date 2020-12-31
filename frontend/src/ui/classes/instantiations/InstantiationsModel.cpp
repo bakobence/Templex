@@ -31,9 +31,8 @@ void InstantiationsModel::clear()
     endRemoveColumns();
 }
 
-void InstantiationsModel::loadData(
-    model::TemplatePtr classTemplate,
-    const std::vector<model::InstantiationPtr>& data)
+void InstantiationsModel::loadData(model::TemplatePtr classTemplate,
+                                   const std::vector<model::InstantiationPtr>& data)
 {
     if (data.empty() || classTemplate == nullptr)
         return;
@@ -70,7 +69,7 @@ int InstantiationsModel::columnCount(const QModelIndex&) const
 
 QVariant InstantiationsModel::data(const QModelIndex& index, int role) const
 {
-    if (role == Qt::DisplayRole) {
+    if (role == Qt::DisplayRole || role == Qt::ToolTipRole) {
         if (index.row() < 0 || index.row() > (int)instantiations_.size() - 1) {
             return QVariant();
         }

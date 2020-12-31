@@ -12,7 +12,6 @@ void BasicDelegate::paint(QPainter* painter,
                           const QStyleOptionViewItem& option,
                           const QModelIndex& index) const
 {
-    // QStyledItemDelegate::paint(painter, option, index);
     auto style = QApplication::style();
     auto rect  = option.rect;
     auto text  = index.data(Qt::DisplayRole).toString();

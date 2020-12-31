@@ -4,6 +4,8 @@
 #include "ui/common/class_template_selector/ClassTemplateSelector.h"
 
 #include <QtCharts>
+#include <string>
+#include <vector>
 
 namespace templex {
 namespace frontend {
@@ -20,8 +22,7 @@ public:
     void deinitialize() override;
     QString pageName() override;
 
-    void
-    onClassTemplateSelected(std::shared_ptr<model::Template> classTemplate);
+    void onClassTemplateSelected(std::shared_ptr<model::Template> classTemplate);
 
     void onBarHovered(bool status, int index, QBarSet* set);
 
@@ -30,6 +31,7 @@ private:
 
     ClassTemplateSelector* classSelector_;
     std::shared_ptr<model::Template> currentClassTemplate_;
+    std::vector<std::vector<std::string>> currentArguments_;
 
     QBarSet* set_;
     QBarSeries* series_;

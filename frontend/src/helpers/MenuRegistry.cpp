@@ -3,7 +3,7 @@
 #include "ui/classes/instantiations/ClassInstantiationsPage.h"
 #include "ui/classes/statistics/ClassStatisticsPage.h"
 #include "ui/classes/stl_containers/STLContainersPage.h"
-#include "ui/functions/stl_algorithms/STLAlgorithmsPage.h"
+#include "ui/functions/instantiations/FunctionInstantiationsPage.h"
 
 using namespace templex;
 using namespace templex::frontend;
@@ -21,26 +21,14 @@ void MenuRegistry::buildMenuRegistry()
     int mainIdPool = 0;
     MenuRegistry::MenuData classes(mainIdPool++, "Classes");
     MenuRegistry::MenuData functions(mainIdPool++, "Functions");
-    MenuRegistry::MenuData loadData(mainIdPool++, "Load JSON");
 
     int subIdPool = 0;
     registerPage<ClassInstantiationsPage>(subIdPool++, "Instantiations", classes);
     registerPage<ClassStatisticsPage>(subIdPool++, "Statistics", classes);
     registerPage<STLContainersPage>(subIdPool++, "STL Containers", classes);
-    registerPage<STLAlgorithmsPage>(subIdPool++, "STL Algorithms", functions);
-    registerPage<STLAlgorithmsPage>(subIdPool++, "STL Algorithms 2", functions);
-
-    /*
-
-    MenuRegistry::MenuData classInstantiations(0, "Instantiations");
-
-    MenuRegistry::MenuData classStlContainers(1, "STL containers");
-
-    MenuRegistry::MenuData functionsInstantiations(0, "Instantiations");
-    MenuRegistry::MenuData functionsStlContainers(1, "STL algorithms");
-    MenuRegistry::MenuData functionsComparators(2, "Comparators");
-
-    */
+    registerPage<FunctionInstantiationsPage>(subIdPool++,
+                                             "Instantiations",
+                                             functions);
 }
 
 QList<MenuRegistry::MenuData> MenuRegistry::getMainMenu()

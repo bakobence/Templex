@@ -21,7 +21,7 @@ public:
     using Instantiations = std::vector<InstantiationPtr>;
     using InstantiationsCache =
         std::map<TemplatePtr, Instantiations, ::nostd::less_pointee<Template>>;
-
+    using FunctionsCache            = std::map<std::string, InstantiationsCache>;
     using InstantiationAggregations = std::vector<std::pair<InstantiationPtr, int>>;
     using InstantiationAggregationsCache = std::
         map<TemplatePtr, InstantiationAggregations, ::nostd::less_pointee<Template>>;
@@ -58,6 +58,17 @@ public:
     InstantiationsCache getStlContainersInstantiationCache() const;
     InstantiationAggregationsCache getStlContainersAggregationCache() const;
 
+    void addFunctionTemplate(TemplatePtr functionTemplate,
+                             const std::string& functionName);
+    void addFunctionInstantiation(InstantiationPtr functionInstantiation,
+                                  const std::string& functionName);
+    std::vector<std::string> getFunctionNames() const;
+    std::vector<TemplatePtr>
+    getOverloadTempaltesForFunction(const std::string& functionName) const;
+    Instantiations
+    getFunctionOverloadInstantiationsFor(TemplatePtr functionTemplate,
+                                         const std::string& functionName) const;
+
     void cleanCache();
     void trimPaths();
     void createAggregation();
@@ -67,7 +78,8 @@ private:
 
 private:
     InstantiationsCache classes_;
-    InstantiationAggregationsCache aggregation_;
+    InstantiationAggregationsCache classAggregations;
+    FunctionsCache functions_;
 
     constexpr static std::array<const char*, 11> STL_CONTAINERS = {
         "std::array",

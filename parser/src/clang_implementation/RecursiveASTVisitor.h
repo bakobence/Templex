@@ -24,8 +24,11 @@ public:
 private:
     std::string getDeclLocation(clang::SourceLocation location) const;
     std::string sanitizeType(clang::QualType type) const;
+    std::string makeFunctionTemplateId(model::TemplatePtr functionTemplate,
+                                       clang::FunctionDecl* D) const;
 
-    bool shouldSkipDecl(const clang::SourceLocation& location);
+    void populateTemplateWithParams(model::TemplatePtr templateModel,
+                                    clang::TemplateDecl* D);
 
 private:
     clang::SourceManager& sourceManager_;

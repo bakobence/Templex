@@ -63,6 +63,10 @@ void MainWindow::initMenu()
     exitButton->setText("Exit");
     exitButton->setProperty("menu", "item");
 
+    connect(exitButton, &QPushButton::clicked, this, [] {
+        QCoreApplication::quit();
+    });
+
     ui->topPanel->layout()->addWidget(exitButton);
 
     ui->logoMain->setText("Templex");

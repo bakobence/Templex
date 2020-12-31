@@ -14,7 +14,7 @@
 using namespace templex;
 using namespace templex::frontend;
 
-void JSONImport::importCache()
+bool JSONImport::importCache()
 {
     auto arguments = QCoreApplication::arguments();
     if (!arguments.contains("-p"))
@@ -38,18 +38,19 @@ void JSONImport::importCache()
 
     auto document = QJsonDocument::fromJson(d);
 
-    bool result = importClasses(document);
-
-    qDebug() << "Result JSON process" << (result ? "succeeded" : "failed");
+    bool classResult    = importClasses(document);
+    bool functionResult = importFunctions(document);
 
     model::TypeCache::getInstance().dump();
+
+    return classResult && functionResult;
 }
 
 bool JSONImport::importClasses(const QJsonDocument& doc)
 {
     auto& cache = model::TypeCache::getInstance();
 
-    qDebug() << "Importing template classes from JSON";
+    qDebug() << "Importing class templates from JSON";
     auto object = doc.object();
 
     if (!object.contains(CLASSES) || !object[CLASSES].isArray()) {
@@ -120,7 +121,7 @@ bool JSONImport::importClasses(const QJsonDocument& doc)
             auto instantiationEntity = std::make_shared<model::Instantiation>();
             auto object              = instantiation.toObject();
 
-            instantiationEntity->setClassTemplate(templateEntity);
+            instantiationEntity->setTemplate(templateEntity);
 
             if (!object.contains(POI) || !object[POI].isString()) {
                 return false;
@@ -166,7 +167,7 @@ bool JSONImport::importClasses(const QJsonDocument& doc)
             auto instantiationEntity = std::make_shared<model::Instantiation>();
             auto object              = aggregation.toObject();
 
-            instantiationEntity->setClassTemplate(templateEntity);
+            instantiationEntity->setTemplate(templateEntity);
 
             if (!object.contains(ARGUMENTS) || !object[ARGUMENTS].isArray()) {
                 return false;
@@ -197,6 +198,138 @@ bool JSONImport::importClasses(const QJsonDocument& doc)
 
             cache.addClassInstantiationAggregation(instantiationEntity,
                                                    aggregationValue);
+        }
+    }
+
+    return true;
+}
+
+bool JSONImport::importFunctions(const QJsonDocument& doc)
+{
+    auto& cache = model::TypeCache::getInstance();
+
+    qDebug() << "Importing function templates from JSON";
+
+    auto object = doc.object();
+
+    if (!object.contains(FUNCTIONS) || !object[FUNCTIONS].isArray()) {
+        return false;
+    }
+
+    auto functions = object[FUNCTIONS].toArray();
+
+    for (auto functionObject : functions) {
+        if (!functionObject.isObject())
+            continue;
+
+        auto function = functionObject.toObject();
+
+        if (!function.contains(FUNCTION_NAME) ||
+            !function[FUNCTION_NAME].isString()) {
+            return false;
+        }
+
+        auto functionName = function[FUNCTION_NAME].toString().toStdString();
+
+        if (!function.contains(OVERLOADS) || !function[OVERLOADS].isArray()) {
+            return false;
+        }
+
+        auto overloads = function[OVERLOADS].toArray();
+
+        for (auto overloadObject : overloads) {
+            if (!overloadObject.isObject())
+                continue;
+
+            auto templateEntity = std::make_shared<model::Template>();
+            auto overload       = overloadObject.toObject();
+
+            if (!overload.contains(COMPLETE_FUNCTION_SIGNATURE) ||
+                !overload[COMPLETE_FUNCTION_SIGNATURE].isString()) {
+                return false;
+            }
+
+            if (!overload.contains(PARAMETERS) || !overload[PARAMETERS].isArray()) {
+                return false;
+            }
+
+            if (!overload.contains(INSTANTIATIONS) ||
+                !overload[INSTANTIATIONS].isArray()) {
+                return false;
+            }
+
+            auto functionSignature =
+                overload[COMPLETE_FUNCTION_SIGNATURE].toString();
+            auto parameters     = overload[PARAMETERS].toArray();
+            auto instantiations = overload[INSTANTIATIONS].toArray();
+
+            templateEntity->setName(functionSignature.toStdString());
+            cache.addFunctionTemplate(templateEntity, functionName);
+
+            for (auto parameterObject : parameters) {
+                if (!parameterObject.isObject())
+                    continue;
+
+                auto parameterEntity = std::make_shared<model::TemplateParameter>();
+                auto parameter       = parameterObject.toObject();
+
+                if (!parameter.contains(KIND) || !parameter[KIND].isString()) {
+                    return false;
+                }
+
+                if (!parameter.contains(NAME) || !parameter[NAME].isString()) {
+                    return false;
+                }
+
+                auto kind = parameter[KIND].toString().toStdString();
+                auto name = parameter[NAME].toString().toStdString();
+
+                parameterEntity->setType(kind);
+                parameterEntity->setParameterName(name);
+                templateEntity->addParameter(parameterEntity);
+            }
+
+            for (auto instantiationObject : instantiations) {
+                if (!instantiationObject.isObject())
+                    continue;
+
+                auto instantiationEntity = std::make_shared<model::Instantiation>();
+                auto instantiation       = instantiationObject.toObject();
+
+                if (!instantiation.contains(POI) || !instantiation[POI].isString()) {
+                    return false;
+                }
+
+                if (!instantiation.contains(ARGUMENTS) ||
+                    !instantiation[ARGUMENTS].isArray()) {
+                    return false;
+                }
+
+                instantiationEntity->setTemplate(templateEntity);
+
+                auto poi       = instantiation[POI].toString().toStdString();
+                auto arguments = instantiation[ARGUMENTS].toArray();
+
+                instantiationEntity->setPointOfInstantiation(poi);
+
+                for (int i = 0; i < arguments.size(); i++) {
+                    auto argumentObject = arguments[i];
+                    if (!argumentObject.isObject())
+                        continue;
+
+                    auto argument = argumentObject.toObject();
+
+                    if (!argument.contains(ACTUAL) || !argument[ACTUAL].isString()) {
+                        return false;
+                    }
+
+                    auto actual = argument[ACTUAL].toString().toStdString();
+
+                    instantiationEntity->setActualParameter(i, actual);
+                }
+
+                cache.addFunctionInstantiation(instantiationEntity, functionName);
+            }
         }
     }
 

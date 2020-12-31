@@ -17,7 +17,7 @@ bool Instantiation::isEqual(std::shared_ptr<Instantiation> other) const
 {
     // Two instantiation is the same if the class template is the same, and also
     // every parameter matches.
-    if (classTemplate_->getName() != other->getClassTemplate()->getName()) {
+    if (classTemplate_->getName() != other->getTemplate()->getName()) {
         return false;
     }
 
@@ -33,7 +33,7 @@ bool Instantiation::isEqual(std::shared_ptr<Instantiation> other) const
     return equal;
 }
 
-void Instantiation::setClassTemplate(TemplatePtr classTemplate)
+void Instantiation::setTemplate(TemplatePtr classTemplate)
 {
     // Copying the pointer to the same object that the cache points to.
     classTemplate_ = classTemplate;
@@ -63,7 +63,7 @@ std::vector<TemplateParameterPtr> Instantiation::getActualParameters() const
     return actualParameters_;
 }
 
-TemplatePtr Instantiation::getClassTemplate() const
+TemplatePtr Instantiation::getTemplate() const
 {
     return classTemplate_;
 }

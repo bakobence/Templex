@@ -36,7 +36,9 @@ add_executable(templex_frontend
     src/ui/classes/stl_containers/AggregationProxy.cpp
     src/ui/classes/stl_containers/InstantiationLocationModel.cpp
 
-    src/ui/functions/stl_algorithms/STLAlgorithmsPage.cpp
+    src/ui/functions/instantiations/FunctionInstantiationsPage.cpp
+    src/ui/functions/instantiations/FunctionNamesModel.cpp
+    src/ui/functions/instantiations/FunctionOverloadsModel.cpp
 
     src/util/JSONImport.cpp)
 
